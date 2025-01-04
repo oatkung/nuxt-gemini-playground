@@ -1,6 +1,7 @@
 declare module 'nuxt/schema' {
   interface RuntimeConfig {
-    geminiApiKey: string
+    geminiApiKey: string,
+    tempPath: string
   }
   interface PublicRuntimeConfig {
     geminiApiKey: string
