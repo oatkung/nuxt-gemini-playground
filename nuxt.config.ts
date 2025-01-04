@@ -10,7 +10,7 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: [
     '@nuxtjs/tailwindcss',
-    'nuxt-markdown-render',
+    '@nuxt/content',
   ],
   devServer: {
     port: 8055,

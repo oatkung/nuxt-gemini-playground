@@ -2,84 +2,45 @@
   <div class="p-6">
     <div class="card bg-base-100">
       <div class="card-body">
-        <h2 class="card-title">Sentiment Analysis</h2>
-        <p class="text-neutral text-sm">
-          Analyze the sentiment of the following Tweets and classify them as
-          POSITIVE,
-          NEGATIVE, or NEUTRAL.</p>
+        <h2 class="card-title">Welcome</h2>
         <div>
-          <template v-for="chat in chats">
-            <div class="chat chat-end" v-if="chat.isUser">
-              <div class="chat-bubble">{{ chat.message }}</div>
-            </div>
-            <div class="chat chat-start" v-else>
-              <div class="chat-bubble chat-bubble-primary" >{{ chat.message }}</div>
-            </div>
-          </template>
-          <div class="chat chat-start" v-if="loading">
-            <div class="chat-bubble chat-bubble-primary" >
-              <span class="loading loading-dots loading-xs"></span>
-            </div>
-          </div>
-        </div>
-        <div class="form-control">
-          <div class="label">
-            <span class="label-text"></span>
-          </div>
-          <textarea v-model="text" class="textarea textarea-bordered h-24" placeholder="Enter text here"></textarea>
-        </div>
-        <div class="card-actions justify-end mt-4">
-          <button 
-            class="btn btn-primary"
-            :class="{ 'btn-disabled': !text }"
-            @click="sendMessage(text)" 
-          >Analyze</button>
+          {{  result  }}
         </div>
       </div>
+      <pre v-html="md" />
     </div>
   </div>
 </template>
 <script setup lang="ts">
-import type { SentimentRequest, SentimentResponse } from '~/server/api/sentiment';
+const result = ref('')
 
 
-interface Chat {
-  message: string
-  isUser: boolean
-}
-
-
-const text = ref('')
-
-const loading = ref(false)
-
-
-
-const chats = ref<Chat[]>([
-  
-])
-
-
-async function sendMessage(message: string) {
-  chats.value.push({
-    message,
-    isUser: true
+const md = computed(() => {
+  return mdToHtml(result.value)
+})
+async function loadData () {
+  const response = await $fetch<ReadableStream>('/api/stream-test', {
+    method: 'GET',
+    responseType: 'stream',
   })
-  text.value = ''
-  loading.value = true
-  const body: SentimentRequest = {
-    message
+
+  const reader = response.pipeThrough(new TextDecoderStream()).getReader()
+
+  // Read the chunk of data as we get it
+  while (true) {
+    const { value, done } = await reader.read()
+
+    if (done) {
+      console.log('Finished')
+      break
+    }
+
+    result.value += value
   }
-  const result = await $fetch<SentimentResponse>('/api/sentiment', {
-    method: 'POST',
-    body,
-  })
-
-  chats.value.push({
-    message: result.message,
-    isUser: false
-  })
-  loading.value = false
 }
+
+onMounted(() => {
+  // loadData()
+})
 
 </script>

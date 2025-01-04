@@ -11,28 +11,23 @@
           <div>
             <input type="file" 
               class="file-input file-input-bordered w-full max-w-xs" 
-              @change="onFileChange" accept="image/*" />
+              @change="onFileChange" accept="image/*"
+            />
           </div>
         </div>
         <hr class="my-4" />
-        <div v-if="loading">
-          <span class="loading loading-dots loading-xs"></span>
+        <div  v-if="imageUrl" class="mx-auto w-[400px] max-w-full">
+          <img :src="imageUrl" class="w-full" />
         </div>
-        <div v-else-if="result">
-          <div  v-if="imageUrl" class="mx-auto w-[400px] max-w-full">
-            <img :src="imageUrl" class="w-full" />
-          </div>
-          <div>
-            <NuxtMarkdown :source="result" />
-          </div>
-        </div>
+        <MDRender v-model="result" />
+        <span v-if="loading" class="loading loading-dots loading-xs"></span>
       </div>
     </div>
   </div>
 </template>
 <script setup lang="ts">
+import MDRender from '~/components/MDRender.vue';
 import type {  RecipeGenieRequest, RecipeGenieResponse} from '~/server/api/recipe-genie';
-
 
 
 const result = ref('')
@@ -41,23 +36,27 @@ const imageUrl = ref<string | null>(null)
 
 const loading = ref(false)
 
-const md = `
-# Hello Nuxt!
+// const md = `
+// # Hello Nuxt!
 
-Welcome to the example of [nuxt-markdown-render](https://github.com/sandros94/nuxt-markdown-render).
+// Welcome to the example of [nuxt-markdown-render](https://github.com/sandros94/nuxt-markdown-render).
 
-`
+// `
+
+
 
 function onFileChange (e: Event) {
   const target = e.target as HTMLInputElement
   const f = target.files?.[0]
-  console.log(target.files)
   if (!f) return
+  processFile(f)
+}
+
+function processFile (f: File) {
   file.value = f
   const reader = new FileReader()
   reader.onload = (e) => {
     imageUrl.value = e.target?.result as string
-    console.log(e.target?.result)
   }
   reader.readAsDataURL(f)
 
@@ -65,23 +64,54 @@ function onFileChange (e: Event) {
 }
 
 
+
 async function sendMessage() {
   
   if (!file.value) return
   
+  result.value = ''
   loading.value = true
 
   const formData = new FormData();
   formData.append('file', file.value);
 
-  const response = await $fetch<RecipeGenieResponse>('/api/recipe-genie', {
+  const response = await $fetch<ReadableStream>('/api/recipe-genie-stream', {
     method: 'POST',
     body: formData,
+    responseType: 'stream',
   })
 
-  result.value = response.message
+  const reader = response.pipeThrough(new TextDecoderStream()).getReader()
+
+  // Read the chunk of data as we get it
+  while (true) {
+    const { value, done } = await reader.read()
+
+    if (done) {
+      console.log('Finished')
+      break
+    }
+    result.value += value
+  }
 
   loading.value = false
 }
+
+function onPaste(e: ClipboardEvent) {
+
+  const data = e.clipboardData
+  if (data?.files.length) {
+    const file = data.files[0]
+    processFile(file)
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('paste',onPaste)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('paste',onPaste)
+})
 
 </script>

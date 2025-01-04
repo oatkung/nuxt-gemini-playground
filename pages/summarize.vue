@@ -13,9 +13,8 @@
         <div v-if="loading">
           <span class="loading loading-dots loading-xs"></span>
         </div>
-        <div v-else>
-          {{  result }}
-        </div>
+        <MDRender v-else v-model="result" >
+        </MDRender>
         <div class="card-actions justify-end mt-4">
           <button 
             class="btn btn-primary"
@@ -28,6 +27,7 @@
   </div>
 </template>
 <script setup lang="ts">
+import MDRender from '~/components/MDRender.vue';
 import type { SummarizeRequest, SummarizeResponse } from '~/server/api/summarize';
 
 
