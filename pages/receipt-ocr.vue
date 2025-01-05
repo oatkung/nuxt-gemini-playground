@@ -67,7 +67,7 @@ const result = ref(md)
 const ocrResult = ref('')
 const file = ref<File | null>(null)
 const withOCR = ref(false)
-const imageUrl = ref<string | null>('https://static.thairath.co.th/media/dFQROr7oWzulq5Fa4MvAZOQmFYm5g8Akcteb0xDPiuoNHv2rLoCibLWV6bwymaw2TAQ.webp')
+const imageUrl = ref<string | null>()
 const step = ref(1)
 
 const loading = ref(false)
