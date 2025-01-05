@@ -1,0 +1,16 @@
+meta {
+  name: hello
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/api/hello
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  file: @file(/Users/oatkung/Documents/work/oat/nuxt-gemini-playground/public/images/r1.jpg)
+  ~ocr: true
+}

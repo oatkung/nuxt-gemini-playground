@@ -12,29 +12,11 @@ export interface SentimentResponse {
   message: string
 }
 
-async function summarizeFromUrl (url: string): Promise<string> {
-  console.info('Begin')
-
-  const { data } = await axios.get(url)
-
-  const model = getGenAI().getGenerativeModel({
-    model: "gemini-1.5-pro",
-  });
-
-  
-  const prompt = "Given the following html code and text, Summarize it into 4 sentences or fewer in Thai: " + data;
-  const result = await model.generateContent(prompt);
-  console.info('AI processing')
-  console.info('Completed', result.response.text())
-  return result.response.text()
-}
-
-
 async function sentiment (text: string): Promise<string> {
 
 
   const model = getGenAI().getGenerativeModel({
-    model: "gemini-1.5-pro",
+    model: "gemini-1.5-flash",
   });
 
   const generationConfig = {

@@ -30,7 +30,7 @@
 import MDRender from '~/components/MDRender.vue';
 import type { SummarizeRequest, SummarizeResponse } from '~/server/api/summarize';
 
-
+const notifyStore = useNotifyStore()
 
 
 const text = ref('')
@@ -47,13 +47,24 @@ async function sendMessage(message: string) {
   const body: SummarizeRequest = {
     url: text.value
   }
-  const response = await $fetch<SummarizeResponse>('/api/summarize', {
-    method: 'POST',
-    body,
-  })
+  
 
-  result.value = response.message
-  loading.value = false
+
+  try {
+    const response = await $fetch<SummarizeResponse>('/api/summarize', {
+      method: 'POST',
+      body,
+    })
+    result.value = response.message
+    loading.value = false
+  } catch (error) {
+    notifyStore.notify(error, NotificationType.Error);
+  } finally {
+    loading.value = false
+  }
+
+
+  
 }
 
 </script>

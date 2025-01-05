@@ -1,7 +1,8 @@
 declare module 'nuxt/schema' {
   interface RuntimeConfig {
     geminiApiKey: string,
-    tempPath: string
+    tempPath: string,
+    googleCloudCredentials
   }
   interface PublicRuntimeConfig {
     geminiApiKey: string

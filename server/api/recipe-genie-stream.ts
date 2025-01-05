@@ -4,6 +4,7 @@ import path from 'path'
 
 import { getGenAI, uploadToGemini } from '~/composables/geminiService'
 import { geminiStreamToReadStream } from '~/utils/gemini'
+import { writeFileToTmp } from '~/utils/utils'
 
 
 export interface RecipeGenieRequest {
@@ -14,7 +15,6 @@ export interface RecipeGenieResponse {
 }
 
 async function recipeGenie(filePath: string, memeType: string): Promise<ReadableStream> {
-  console.log('Begin')
   const sample = {
     path: path.join(process.cwd(), 'public/images', 'cookie.jpg'),
     memeType: 'image/jpeg'
@@ -25,7 +25,7 @@ async function recipeGenie(filePath: string, memeType: string): Promise<Readable
   ];
 
   const model = getGenAI().getGenerativeModel({
-    model: "gemini-1.5-pro",
+    model: "gemini-1.5-flash",
   });
 
 
@@ -88,24 +88,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const memeType = file.type
-  const config = useRuntimeConfig()
-  console.log(config.tempPath, file.filename)
-  if (!config.tempPath) {
-    throw new Error('Missing TEMP_PATH environment variable');
-  }
-  const outputPath = config.tempPath
-  const fileName = file.filename
-  const filePath = path.join(outputPath, fileName)
 
-
-  console.log(filePath)
-
-  if (!fs.existsSync(outputPath)) {
-    fs.mkdirSync(outputPath)
-  }
-
-  fs.writeFileSync(filePath, Buffer.from(file.data.buffer))
-
+  const filePath = writeFileToTmp(file)
+  
   const result = await recipeGenie(filePath, memeType)
   return sendStream(event, result)
 })

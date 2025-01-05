@@ -27,8 +27,9 @@
 </template>
 <script setup lang="ts">
 import MDRender from '~/components/MDRender.vue';
-import type {  RecipeGenieRequest, RecipeGenieResponse} from '~/server/api/recipe-genie';
+import type {  RecipeGenieRequest, RecipeGenieResponse} from '~/server/api/recipe-genie-stream';
 
+const notifyStore = useNotifyStore()
 
 const result = ref('')
 const file = ref<File | null>(null)
@@ -75,26 +76,30 @@ async function sendMessage() {
   const formData = new FormData();
   formData.append('file', file.value);
 
-  const response = await $fetch<ReadableStream>('/api/recipe-genie-stream', {
-    method: 'POST',
-    body: formData,
-    responseType: 'stream',
-  })
+  try {
+    const response = await $fetch<ReadableStream>('/api/recipe-genie-stream', {
+      method: 'POST',
+      body: formData,
+      responseType: 'stream',
+    })
 
-  const reader = response.pipeThrough(new TextDecoderStream()).getReader()
+    const reader = response.pipeThrough(new TextDecoderStream()).getReader()
 
-  // Read the chunk of data as we get it
-  while (true) {
-    const { value, done } = await reader.read()
+    // Read the chunk of data as we get it
+    while (true) {
+      const { value, done } = await reader.read()
 
-    if (done) {
-      console.log('Finished')
-      break
+      if (done) {
+        console.log('Finished')
+        break
+      }
+      result.value += value
     }
-    result.value += value
+  } catch (error) {
+    notifyStore.notify(error, NotificationType.Error);
+  } finally {
+    loading.value = false
   }
-
-  loading.value = false
 }
 
 function onPaste(e: ClipboardEvent) {

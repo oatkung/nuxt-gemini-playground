@@ -16,7 +16,7 @@ async function summarizeFromUrl (url: string): Promise<string> {
   const { data } = await axios.get(url)
 
   const model = getGenAI().getGenerativeModel({
-    model: "gemini-1.5-pro",
+    model: "gemini-1.5-flash",
   });
 
   

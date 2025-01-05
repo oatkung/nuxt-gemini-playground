@@ -1,0 +1,15 @@
+meta {
+  name: ocr
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/ocr
+  body: multipartForm
+  auth: none
+}
+
+body:multipart-form {
+  file: @file(/Users/oatkung/Documents/work/oat/nuxt-gemini-playground/public/images/r1.jpg)
+}

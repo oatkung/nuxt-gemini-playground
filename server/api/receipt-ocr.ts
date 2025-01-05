@@ -1,22 +1,33 @@
 import zod from 'zod'
 import fs from 'fs'
 import path from 'path'
+import type { H3Event, EventHandlerRequest, MultiPartData } from 'h3'
 
 import { getGenAI, uploadToGemini } from '~/composables/geminiService'
+import { extractTextFromImage, writeFileToTmp } from '~/utils/utils'
 
 
 export interface RecipeGenieRequest {
   file: any,
 }
 export interface RecipeGenieResponse {
-  message: string
+  message: string,
+  ocr?: string
 }
 
-async function runModel(filePath: string, memeType: string): Promise<string> {
+async function runModel(
+  filePath: string, 
+  memeType: string, 
+  option?: { ocr?: string }
+): Promise<string> {
   console.info('Begin')
   const sample = {
     path: path.join(process.cwd(), 'public', 'images', 'r1.webp'),
     memeType: 'image/webp'
+  }
+
+  if (!fs.existsSync(sample.path)) {
+    throw new Error('File not found')
   }
   const files = [
     await uploadToGemini(sample.path, sample.memeType),
@@ -24,7 +35,7 @@ async function runModel(filePath: string, memeType: string): Promise<string> {
   ];
 
   const model = getGenAI().getGenerativeModel({
-    model: "gemini-1.5-pro",
+    model: "gemini-1.5-flash",
   });
 
 
@@ -100,6 +111,11 @@ async function runModel(filePath: string, memeType: string): Promise<string> {
     ],
   });
 
+  const ocrPrompt = option?.ocr ? `
+    And use this text that extracted from OCR for helping you:
+    ${option?.ocr}
+  `: ''
+
   const result = await chatSession.sendMessage([
     {
       fileData: {
@@ -113,6 +129,8 @@ async function runModel(filePath: string, memeType: string): Promise<string> {
           Extract the following information and present it in a JSON format:
 
           Do the job same as the example above
+
+          ${ocrPrompt}
         `,
     }
   ], {
@@ -121,32 +139,68 @@ async function runModel(filePath: string, memeType: string): Promise<string> {
   return result.response.text()
 }
 
+async function multipartDataToObject(event: H3Event<EventHandlerRequest>) {
+  const files = await readMultipartFormData(event)
+  const body = await readBody(event)
+  type ItemValue = MultiPartData | string
+  const result = {} as { [key: string]: ItemValue | ItemValue[]  }
+  if (!files) {
+    return result
+  }
+
+
+  // console.log(body)
+  console.log(files)
+  for (const part of files) {
+    const name = part.name ?? ''
+
+    const isFile = part.type !== undefined
+    
+
+    const data = isFile ? part : part.data.toString()
+    if (Array.isArray(result[name])) {
+      result[name].push(data)
+    } else if (!result[name]) {
+      result[name] = data
+    } else if (result[name]) {
+      result[name] = [result[name], data]
+    }
+  }
+
+  return result
+
+}
 
 export default defineEventHandler(async (event) => {
-  const body = await readMultipartFormData(event)
-  const file = body?.find((part) => part.name === 'file')
+  
+  const body = await multipartDataToObject(event) as {
+    file: MultiPartData,
+    ocr?: string
+  }
+
+  const { file, ocr } = body
+
 
   if (!file || !file.filename || !file.data || !file.type) {
     throw new Error('No file found')
   }
 
+
+
   const memeType = file.type
-  const config = useAppConfig()
-  if (!config.tempPath) {
-    throw new Error('Missing TEMP_PATH environment variable');
-  }
-  const outputPath = path.resolve(config.tmpDir)
-  const fileName = file.filename
-  const filePath = path.join(outputPath, fileName)
+  const filePath = writeFileToTmp(file)
 
-  if (!fs.existsSync(outputPath)) {
-    fs.mkdirSync(outputPath)
+  let textFromOcr = undefined 
+  if (ocr === 'true') {
+    textFromOcr = await extractTextFromImage(file)
   }
 
-  fs.writeFileSync(filePath, Buffer.from(file.data.buffer))
-
-  const result = await runModel(filePath, memeType)
+  console.log('textFromOcr ', textFromOcr)
+  const result = await runModel(filePath, memeType, {
+    ocr: textFromOcr
+  })
   return {
+    ocr: textFromOcr,
     message: result
   } as RecipeGenieResponse
 })

@@ -42,6 +42,7 @@
 <script setup lang="ts">
 import type { SentimentRequest, SentimentResponse } from '~/server/api/sentiment';
 
+const notifyStore = useNotifyStore();
 
 interface Chat {
   message: string
@@ -70,16 +71,25 @@ async function sendMessage(message: string) {
   const body: SentimentRequest = {
     message
   }
-  const result = await $fetch<SentimentResponse>('/api/sentiment', {
-    method: 'POST',
-    body,
-  })
+  try {
+    const result = await $fetch<SentimentResponse>('/api/sentiment', {
+      method: 'POST',
+      body,
+    })
+    chats.value.push({
+      message: result.message,
+      isUser: false
+    })
+  } catch (error) {
+    notifyStore.notify(error, NotificationType.Error);
+  } finally {
+    loading.value = false
+  }
 
-  chats.value.push({
-    message: result.message,
-    isUser: false
-  })
-  loading.value = false
+  
 }
+
+onMounted(() => {
+})
 
 </script>
