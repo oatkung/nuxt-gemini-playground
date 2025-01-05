@@ -20,7 +20,6 @@ async function runModel(
   memeType: string, 
   option?: { ocr?: string }
 ): Promise<string> {
-  console.info('Begin')
   const sample = {
     path: path.join(process.cwd(), 'public', 'images', 'r1.webp'),
     memeType: 'image/webp'
@@ -111,10 +110,13 @@ async function runModel(
     ],
   });
 
-  const ocrPrompt = option?.ocr ? `
-    And use this text that extracted from OCR for helping you:
-    ${option?.ocr}
-  `: ''
+  let ocrPrompt = ''
+
+  if (option?.ocr) {
+    ocrPrompt += 'And use this text that extracted from OCR. It might be useful for the analysis: \n'
+    ocrPrompt += `ocr: ${option?.ocr}\n'`
+    ocrPrompt += 'If you you found misspelled words , please correct it before use it in with the analysis.\n'
+  }
 
   const result = await chatSession.sendMessage([
     {

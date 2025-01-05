@@ -11,7 +11,6 @@ export interface SummarizeResponse {
   message: string
 }
 async function summarizeFromUrl (url: string): Promise<string> {
-  console.info('Begin')
 
   const { data } = await axios.get(url)
 
@@ -43,8 +42,6 @@ async function summarizeFromUrl (url: string): Promise<string> {
 พรอมต์: คุณเป็นป้าข้างบ้านที่ชอบติดตามชีวิตของดารา จงสรุปข่าวนี้ในสไตล์ที่คุณชอบนินทา โดยเน้นไปที่เรื่องราวความรักของดาราสาวคนนี้
   ` + data;
   const result = await model.generateContent(prompt);
-  console.info('AI processing')
-  console.info('Completed', result.response.text())
   return result.response.text()
 }
 

@@ -35,7 +35,7 @@
           <hr class="my-4" />
         </section>
         <section v-if="step === 2" class="block xl:flex xl:gap-x-4">
-          <div class="w-full xl:w-[400px]">
+          <div class="w-full xl:w-[400px] flex-shrink-0">
             <div v-if="imageUrl" class="max-w-full">
               <img :src="imageUrl" class="w-full" />
             </div>
