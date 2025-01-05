@@ -1,4 +1,5 @@
 import path from 'path'
+import fs from 'fs'
 
 export default defineEventHandler((event) => {
 
@@ -7,6 +8,7 @@ export default defineEventHandler((event) => {
   return {
     currentPath: process.cwd(),
     currentPath2: path.join(''),
-    hello: 'world'
+    hello: 'world',
+    dir: fs.readdirSync(process.cwd())
   }
 })
