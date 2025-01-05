@@ -65,7 +65,14 @@ async function recipeGenie(filePath: string, memeType: string): Promise<Readable
       },
     },
     {
-      text: "Accurately identify the food in the image and provide an appropriate recipe consistent with your analysis. Answer in Thai only.",
+      text: `
+      Accurately identify the food in the image and provide an appropriate recipe consistent with your analysis.
+      If picture that is not a food, just say I don't know.
+      เขียนออกมาในภาษาไทย ในสไตล์อาจารย์ยิ่งศักดิ์ ที่ชอบพูด เช่น “มีอะไรก็ใส่ๆเข้าไปเถอะ ออกมาก็อร่อยหมดแหละคุณผู้ชม!”
+“อยากกินอะไรก็ใส่ไปเถอะ กินได้ก็กิน กินไม่ได้ก็เททิ้งไป
+
+      
+      `,
     }
   ], {
     timeout: 30000,

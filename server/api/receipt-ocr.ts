@@ -58,7 +58,7 @@ async function runModel(
       {
         name: 'Ferrero Toast',
         amount: 1,
-        totalAmout: 245.00
+        totalAmount: 245.00
       }
     ],
     total: 245.00
@@ -77,7 +77,7 @@ async function runModel(
       * **items**: An array of objects containing the following fields:
         *  **name**: The name of the item
         * **amount**: The quantity of the item
-        * **totalAmount**: The total amount for the item
+        * **totalAmount**: The total amount for the item and if it is a discount, then it must be negative value
       * **total**: The total amount of the transaction
       
       ${JSON.stringify(exampleJson, null, 2)}
@@ -149,8 +149,6 @@ async function multipartDataToObject(event: H3Event<EventHandlerRequest>) {
   }
 
 
-  // console.log(body)
-  console.log(files)
   for (const part of files) {
     const name = part.name ?? ''
 
@@ -195,7 +193,6 @@ export default defineEventHandler(async (event) => {
     textFromOcr = await extractTextFromImage(file)
   }
 
-  console.log('textFromOcr ', textFromOcr)
   const result = await runModel(filePath, memeType, {
     ocr: textFromOcr
   })

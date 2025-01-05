@@ -90,7 +90,6 @@ async function sendMessage() {
       const { value, done } = await reader.read()
 
       if (done) {
-        console.log('Finished')
         break
       }
       result.value += value

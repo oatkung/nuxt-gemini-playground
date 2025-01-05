@@ -4,35 +4,56 @@
       <div class="card-body">
         <h2 class="card-title">Receipt OCR</h2>
 
-        <div class="form-control">
-          <div class="label">
-            <span class="label-text"></span>
+        <section v-if="step === 1">
+          <div class="form-control">
+            <div class="label">
+              <span class="label-text"></span>
+            </div>
+            <div>
+              <input v-if="!imageUrl" type="file" class="file-input file-input-bordered w-full max-w-xs"
+                @change="onFileChange" accept="image/*" />
+              <div v-if="imageUrl" class="w-[140px] h-[140px] rounded-xl overflow-hidden relative">
+                <img :src="imageUrl" class="w-full h-full object-cover" />
+                <a href="#" class="absolute top-1 right-1 text-white shadow-lg" @click="deleteImage">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4" viewBox="0 0 24 24">
+                    <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                      stroke-width="4" d="m21 21l-9-9m0 0L3 3m9 9l9-9m-9 9l-9 9" />
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="form-control w-52">
+            <label class="label cursor-pointer">
+              <span class="label-text">With OCR</span>
+              <input v-model="withOCR" type="checkbox" class="toggle" />
+            </label>
           </div>
           <div>
-            <input type="file" class="file-input file-input-bordered w-full max-w-xs" @change="onFileChange"
-              accept="image/*" />
+            <button class="btn btn-primary" :disabled="!file || loading" @click="onSubmit">Submit</button>
           </div>
-        </div>
-        <div class="form-control w-52">
-          <label class="label cursor-pointer">
-            <span class="label-text">With OCR</span>
-            <input v-model="withOCR" type="checkbox" class="toggle" />
-          </label>
-        </div>
-        <hr class="my-4" />
-        <div v-if="imageUrl" class="mx-auto w-[400px] max-w-full">
-          <img :src="imageUrl" class="w-full" />
-        </div>
-        <div v-if="loading">
-          <span class="loading loading-dots loading-xs"></span>
-        </div>
-        <div v-if="ocrResult" class="p-4 border rounded">
-          <h5 class="mb-2 font-bold text-lg">OCR Data</h5>
-          {{ ocrResult }}
-        </div>
-        <div v-if="result">
-          <MDRender v-model="result" />
-        </div>
+          <hr class="my-4" />
+        </section>
+        <section v-if="step === 2" class="block xl:flex xl:gap-x-4">
+          <div class="w-full xl:w-[400px]">
+            <div v-if="imageUrl" class="max-w-full">
+              <img :src="imageUrl" class="w-full" />
+            </div>
+            <button class="btn btn-primary mt-4" @click="step = 1">Back</button>
+          </div>
+          <div class="h-auto xl:h-[calc(100vh-230px)] xl:overflow-y-scroll">
+            <div v-if="loading">
+              <span class="loading loading-dots loading-xs"></span>
+            </div>
+            <div v-if="ocrResult" class="p-4 border rounded mb-4">
+              <h5 class="mb-2 font-bold text-xl">OCR Data</h5>
+              {{ ocrResult }}
+            </div>
+            <div v-if="result">
+              <MDRender v-model="result" />
+            </div>
+          </div>
+        </section>
       </div>
     </div>
   </div>
@@ -41,25 +62,31 @@
 import type {  RecipeGenieResponse} from '~/server/api/receipt-ocr';
 
 const notifyStore = useNotifyStore()
-const result = ref('')
+const md = ""
+const result = ref(md)
 const ocrResult = ref('')
 const file = ref<File | null>(null)
 const withOCR = ref(false)
-const imageUrl = ref<string | null>(null)
+const imageUrl = ref<string | null>('https://static.thairath.co.th/media/dFQROr7oWzulq5Fa4MvAZOQmFYm5g8Akcteb0xDPiuoNHv2rLoCibLWV6bwymaw2TAQ.webp')
+const step = ref(1)
 
 const loading = ref(false)
 
-const md = `
-# Hello Nuxt!
-
-Welcome to the example of [nuxt-markdown-render](https://github.com/sandros94/nuxt-markdown-render).
-
-`
 function onFileChange (e: Event) {
   const target = e.target as HTMLInputElement
   const f = target.files?.[0]
   if (!f) return
-  processFile(f)
+  file.value = f
+  renderImage(f)
+}
+
+function renderImage (f: File) {
+  const reader = new FileReader()
+
+  reader.onload = (e) => {
+    imageUrl.value = e.target?.result as string
+  }
+  reader.readAsDataURL(f)
 }
 
 
@@ -67,12 +94,7 @@ async function processFile (file: File) {
   
   loading.value = true
 
-  const reader = new FileReader()
-
-  reader.onload = (e) => {
-    imageUrl.value = e.target?.result as string
-  }
-  reader.readAsDataURL(file) 
+  
 
   const formData = new FormData();
   formData.append('file', file);
@@ -102,9 +124,24 @@ function onPaste(e: ClipboardEvent) {
 
   const data = e.clipboardData
   if (data?.files.length) {
-    const file = data.files[0]
-    processFile(file)
+    file.value = data.files[0]
+    renderImage(data?.files[0])
   }
+}
+
+function reset () {
+  imageUrl.value = null
+  file.value = null
+  result.value = ''
+  ocrResult.value = ''
+}
+function deleteImage () {
+  reset()
+}
+function onSubmit () {
+  if (!file.value) return
+  step.value = 2
+  processFile(file.value)
 }
 
 onMounted(() => {

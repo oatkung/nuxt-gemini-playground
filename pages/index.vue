@@ -31,7 +31,6 @@ async function loadData () {
     const { value, done } = await reader.read()
 
     if (done) {
-      console.log('Finished')
       break
     }
 

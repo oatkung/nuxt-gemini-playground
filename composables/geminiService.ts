@@ -25,7 +25,6 @@ export async function uploadToGemini(path: string, mimeType: string) {
     displayName: path,
   });
   const file = uploadResult.file;
-  console.log(`Uploaded file ${file.displayName} as: ${file.name}`);
   return file;
 }
 

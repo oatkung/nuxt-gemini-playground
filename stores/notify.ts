@@ -34,10 +34,8 @@ export const useNotifyStore = defineStore('notify', {
       let message: string = "";
       if (messageOrError instanceof Error) message = messageOrError.message;
       if (typeof messageOrError === "string") message = messageOrError;
-      console.log('sdf')
       const notification: Notification = { message, type, notifyTime: Date.now() };
       this.notifications.push(notification);
-      console.log(this.notifications)
       setTimeout(this.removeNotification.bind(this), 5000, notification);
     },
     removeNotification(notification: Notification) {
