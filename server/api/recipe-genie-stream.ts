@@ -15,12 +15,8 @@ export interface RecipeGenieResponse {
 }
 
 async function recipeGenie(filePath: string, memeType: string): Promise<ReadableStream> {
-  const sample = {
-    path: path.join(process.cwd(), 'public/images', 'cookie.jpg'),
-    memeType: 'image/jpeg'
-  }
+  
   const files = [
-    // await uploadToGemini(sample.path, sample.memeType),
     await uploadToGemini(filePath, memeType),
   ];
 

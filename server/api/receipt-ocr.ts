@@ -4,7 +4,7 @@ import path from 'path'
 import type { H3Event, EventHandlerRequest, MultiPartData } from 'h3'
 
 import { getGenAI, uploadToGemini } from '~/composables/geminiService'
-import { extractTextFromImage, writeFileToTmp } from '~/utils/utils'
+import { downloadFile, extractTextFromImage, writeFileToTmp } from '~/utils/utils'
 
 
 export interface RecipeGenieRequest {
@@ -20,9 +20,13 @@ async function runModel(
   memeType: string, 
   option?: { ocr?: string }
 ): Promise<string> {
+
+  const sample1Path = await downloadFile('https://nuxt-gemini-playground.vercel.app/images/r1.jpg', 'r1.jpg')
+
+
   const sample = {
-    path: path.join(process.cwd(), 'public', 'images', 'r1.webp'),
-    memeType: 'image/webp'
+    path: sample1Path,
+    memeType: 'image/jpeg'
   }
 
   if (!fs.existsSync(sample.path)) {

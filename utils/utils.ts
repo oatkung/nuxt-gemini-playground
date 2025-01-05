@@ -5,15 +5,21 @@ import type { MultiPartData } from 'h3'
 import { GoogleAuth } from 'google-auth-library'
 
 
-export function writeFileToTmp(file: MultiPartData) {
+function getTempPath () {
   const config = useRuntimeConfig()
   if (!config.tempPath) {
     throw new Error('Missing TEMP_PATH environment variable');
   }
+
+  return path.resolve(config.tempPath)
+}
+
+export function writeFileToTmp(file: MultiPartData) {
+ 
   if (!file.filename || !file.data || !file.type) {
     throw new Error('No file found')
   }
-  const outputPath = path.resolve(config.tempPath)
+  const outputPath = getTempPath()
   const fileName = file.filename 
   const filePath = path.join(outputPath, fileName)
 
@@ -56,4 +62,18 @@ export async function extractTextFromImage(file: MultiPartData): Promise<string 
   const description = textAnnotations[0].description ?? undefined
 
   return description
+}
+
+
+export async function downloadFile (url: string, filename: string) {
+
+  const response = await fetch(url)
+  const blob = await response.blob()
+
+  const fullPath = path.join(getTempPath(), filename)
+  
+  fs.writeFileSync(fullPath, Buffer.from(await blob.arrayBuffer()))
+
+  return fullPath
+
 }
