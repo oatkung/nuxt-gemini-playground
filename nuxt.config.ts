@@ -11,10 +11,6 @@ export default defineNuxtConfig({
   modules: ['@nuxtjs/tailwindcss', '@nuxt/content', '@pinia/nuxt', 'nuxt-rate-limit'],
   devServer: {
     port: 8055,
-    https: ENABLE_SSL ? {
-      key: fs.readFileSync(path.resolve(__dirname, 'server.key'), 'utf8'),
-      cert: fs.readFileSync(path.resolve(__dirname, 'server.crt'), 'utf8')
-    } : false
   },
 
   nuxtRateLimit: {
