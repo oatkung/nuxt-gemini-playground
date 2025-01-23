@@ -41,12 +41,15 @@ async function runModel(
 
 
   const generationConfig = {
-    temperature: 0.9,
-    topP: 0.95,
-    topK: 40,
+    temperature: 0.0, 
+    topP: 0.0, 
+    topK: 1, 
     maxOutputTokens: 8192,
     responseMimeType: "text/plain",
   };
+
+  // adjust above code to fit pecision of the receipt
+  
 
   const exampleJson = {
     storeName: 'After You -Central Ladprao',
